@@ -1,22 +1,13 @@
 {
   "name": "layr",
-  "displayName": "Layr",
-  "description": "A simplified planning layer that helps developers think before coding by generating structured project plans",
-  "version": "0.1.0",
-  "publisher": "layr-dev",
+  "displayName": "Layr - AI Planning Layer",
+  "description": "A Traycer-inspired planning layer that uses Gemini AI to generate intelligent project plans from natural language prompts",
+  "version": "0.0.1",
   "engines": {
     "vscode": "^1.74.0"
   },
   "categories": [
-    "Other",
-    "Snippets"
-  ],
-  "keywords": [
-    "planning",
-    "project",
-    "structure",
-    "development",
-    "ai-inspired"
+    "Other"
   ],
   "activationEvents": [],
   "main": "./out/extension.js",
@@ -24,15 +15,26 @@
     "commands": [
       {
         "command": "layr.createPlan",
-        "title": "Layr: Create Plan",
+        "title": "Create Plan",
         "category": "Layr"
       },
       {
         "command": "layr.executePlan",
-        "title": "Layr: Execute Plan",
+        "title": "Execute Plan",
         "category": "Layr"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Layr",
+      "properties": {
+        "layr.geminiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your Gemini AI API key for generating intelligent plans",
+          "scope": "application"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -44,9 +46,7 @@
     "@types/node": "16.x",
     "typescript": "^4.9.4"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/your-username/layr.git"
-  },
-  "license": "MIT"
+  "dependencies": {
+    "@google/generative-ai": "^0.2.1"
+  }
 }
