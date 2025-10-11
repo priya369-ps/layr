@@ -4,6 +4,7 @@
   "description": "A Traycer-inspired planning layer that uses Gemini AI to generate intelligent project plans from natural language prompts",
   "version": "0.0.1",
   "publisher": "ManasDutta",
+  "icon": "layr.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/manasdutta04/layr"

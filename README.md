@@ -1,17 +1,17 @@
 # Layr - AI Planning Layer for VS Code
 
- **A Traycer-inspired "planning layer" that uses Gemini AI to generate intelligent project plans from natural language prompts.**
+ **A "planning layer" that uses AI to generate intelligent project plans from natural language prompts.**
 
 Layr helps you plan before you code by generating structured, actionable project plans that you can edit and follow step-by-step.
 
 ##  Features
 
-- ** AI-Powered Planning**: Uses Google's Gemini AI to generate intelligent, detailed project plans
-- ** Offline Mode**: Works without an API key using built-in rule-based templates
-- ** Markdown Output**: Plans are generated as editable Markdown documents
-- ** Command Palette Integration**: Easy access through VS Code's command palette
-- ** Flexible Configuration**: Store API key in settings or environment variables
-- ** Smart Fallback**: Automatically falls back to offline mode if AI service fails
+- 1. AI-Powered Planning: Uses Google's Gemini AI to generate intelligent, detailed project plans
+- 2. Offline Mode: Works without an API key using built-in rule-based templates
+- 3. Markdown Output: Plans are generated as editable Markdown documents
+- 4. Command Palette Integration: Easy access through VS Code's command palette
+- 5. Flexible Configuration: Store API key in settings or environment variables
+- 6. Smart Fallback: Automatically falls back to offline mode if AI service fails
 
 ##  Quick Start
 
