@@ -37,7 +37,7 @@ export class GeminiPlanGenerator implements PlanGenerator {
                 temperature: 0.7,
                 topK: 40,
                 topP: 0.95,
-                maxOutputTokens: 2048,
+                maxOutputTokens: 8192,
             },
             safetySettings: [
                 {
@@ -77,7 +77,7 @@ export class GeminiPlanGenerator implements PlanGenerator {
                 temperature: 0.7,
                 topK: 40,
                 topP: 0.95,
-                maxOutputTokens: 2048,
+                maxOutputTokens: 8192,
             },
             safetySettings: [
                 {
@@ -99,19 +99,26 @@ export class GeminiPlanGenerator implements PlanGenerator {
             ],
         });
       
-      const systemPrompt = `Create a project plan in JSON format for: "${prompt}"
+      const systemPrompt = `Create a concise project plan in JSON format for: "${prompt}"
 
-Return only valid JSON:
+Return ONLY valid JSON. No extra text. Keep file structure simple (max 2 levels deep).
+
 {
   "title": "Project Title",
-  "overview": "Brief description",
-  "requirements": ["requirement 1", "requirement 2"],
+  "overview": "Brief description (1-2 sentences)",
+  "requirements": ["requirement 1", "requirement 2", "requirement 3"],
   "fileStructure": [
     {
       "name": "src",
       "type": "directory", 
       "path": "src/",
       "description": "Source code"
+    },
+    {
+      "name": "package.json",
+      "type": "file", 
+      "path": "package.json",
+      "description": "Dependencies"
     }
   ],
   "nextSteps": [
@@ -182,7 +189,37 @@ Return only valid JSON:
 
       console.log('GeminiPlanGenerator: Extracted JSON:', jsonText.substring(0, 200) + (jsonText.length > 200 ? '...' : ''));
 
-      const planData = JSON.parse(jsonText);
+      // Try to parse JSON with error handling and repair
+      let planData;
+      try {
+        planData = JSON.parse(jsonText);
+      } catch (parseError) {
+        console.log('GeminiPlanGenerator: JSON parse error:', parseError);
+        console.log('GeminiPlanGenerator: Attempting to repair JSON...');
+        
+        // Try to repair common JSON issues
+        let repairedJson = jsonText;
+        
+        // Fix trailing commas in arrays and objects
+        repairedJson = repairedJson.replace(/,(\s*[}\]])/g, '$1');
+        
+        // Fix missing commas between array elements
+        repairedJson = repairedJson.replace(/}(\s*){/g, '},$1{');
+        repairedJson = repairedJson.replace(/](\s*)\[/g, '],$1[');
+        
+        // Fix missing quotes around property names
+        repairedJson = repairedJson.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+        
+        // Try parsing the repaired JSON
+        try {
+          planData = JSON.parse(repairedJson);
+          console.log('GeminiPlanGenerator: Successfully repaired and parsed JSON');
+        } catch (repairError) {
+          console.log('GeminiPlanGenerator: Failed to repair JSON:', repairError);
+          console.log('GeminiPlanGenerator: Original JSON for debugging:', jsonText);
+          throw new AIServiceError('Failed to parse AI response as JSON');
+        }
+      }
       
       // Validate and transform the response
       const plan: ProjectPlan = {
