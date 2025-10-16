@@ -168,21 +168,33 @@ Return ONLY valid JSON. No extra text. Keep file structure simple (max 2 levels 
         jsonText = codeBlockMatch[1].trim();
         console.log('GeminiPlanGenerator: Found JSON in code block');
       } else {
-        // Method 2: Look for JSON object starting with {
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          jsonText = jsonMatch[0];
-          console.log('GeminiPlanGenerator: Found JSON object');
-        } else {
-          // Method 3: Try to parse the entire response as JSON
-          try {
-            JSON.parse(text.trim());
-            jsonText = text.trim();
-            console.log('GeminiPlanGenerator: Entire response is valid JSON');
-          } catch {
-            console.log('GeminiPlanGenerator: No valid JSON found in response');
-            console.log('GeminiPlanGenerator: Full response for debugging:', text);
-            throw new AIServiceError('Invalid response format from AI service - no JSON found');
+        // Method 2: Look for JSON between ``` and ``` markers (without json specifier)
+        const genericCodeBlockMatch = text.match(/```\s*([\s\S]*?)\s*```/);
+        if (genericCodeBlockMatch) {
+          const potentialJson = genericCodeBlockMatch[1].trim();
+          if (potentialJson.startsWith('{') && potentialJson.endsWith('}')) {
+            jsonText = potentialJson;
+            console.log('GeminiPlanGenerator: Found JSON in generic code block');
+          }
+        }
+        
+        if (!jsonText) {
+          // Method 3: Look for JSON object starting with { and ending with }
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            jsonText = jsonMatch[0];
+            console.log('GeminiPlanGenerator: Found JSON object');
+          } else {
+            // Method 4: Try to parse the entire response as JSON
+            try {
+              JSON.parse(text.trim());
+              jsonText = text.trim();
+              console.log('GeminiPlanGenerator: Entire response is valid JSON');
+            } catch {
+              console.log('GeminiPlanGenerator: No valid JSON found in response');
+              console.log('GeminiPlanGenerator: Full response for debugging:', text);
+              throw new AIServiceError('Invalid response format from AI service - no JSON found');
+            }
           }
         }
       }

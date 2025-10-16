@@ -11,6 +11,9 @@ export class Planner {
   private aiProvider: AIProvider | null = null;
   private ruleGenerator: RuleBasedPlanGenerator;
   private config: LayrConfig;
+  private geminiModel!: string;
+  private openaiModel!: string;
+  private claudeModel!: string;
 
   constructor() {
     // ONLINE ONLY MODE: Disable rule-based generator
@@ -55,6 +58,8 @@ export class Planner {
       console.log('Planner.generatePlan: Attempting AI plan generation with', this.aiProvider.name);
       const planText = await this.aiProvider.generatePlan(prompt);
       console.log('Planner.generatePlan: AI plan generation successful');
+      console.log('Planner.generatePlan: Raw response length:', planText.length);
+      console.log('Planner.generatePlan: Raw response preview:', planText.substring(0, 200));
       
       // Parse the plan text into a ProjectPlan object
       const plan = this.parseAIPlan(planText);
@@ -173,19 +178,19 @@ export class Planner {
     const claudeApiKey = aiProvider === 'claude' ? apiKey : process.env.CLAUDE_API_KEY || '';
     
     // Get provider-specific model configurations
-    const geminiModel = config.get<string>('geminiModel') || 'gemini-2.5-flash';
-    const openaiModel = config.get<string>('openaiModel') || 'gpt-4';
-    const claudeModel = config.get<string>('claudeModel') || 'claude-3-sonnet';
+    this.geminiModel = config.get<string>('geminiModel') || 'gemini-2.5-flash';
+    this.openaiModel = config.get<string>('openaiModel') || 'gpt-4';
+    this.claudeModel = config.get<string>('claudeModel') || 'claude-3-sonnet';
     
     // Get the current model based on selected provider
-    const currentModel = aiProvider === 'gemini' ? geminiModel : 
-                        aiProvider === 'openai' ? openaiModel : claudeModel;
+    const currentModel = aiProvider === 'gemini' ? this.geminiModel : 
+                        aiProvider === 'openai' ? this.openaiModel : this.claudeModel;
     
     console.log('Layr Config Debug:', {
       selectedProvider: aiProvider,
       apiKey: apiKey ? '***configured***' : 'not set',
       currentModel,
-      allModels: { geminiModel, openaiModel, claudeModel },
+      allModels: { geminiModel: this.geminiModel, openaiModel: this.openaiModel, claudeModel: this.claudeModel },
       resolvedKeys: {
         gemini: geminiApiKey ? '***configured***' : 'not set',
         openai: openaiApiKey ? '***configured***' : 'not set',
@@ -198,16 +203,16 @@ export class Planner {
       geminiApiKey, // Keep for legacy support
       gemini: {
         apiKey: geminiApiKey,
-        model: geminiModel as 'gemini-pro' | 'gemini-pro-vision'
+        model: this.geminiModel as 'gemini-2.5-flash' | 'gemini-2.5-pro' | 'gemini-pro' | 'gemini-pro-vision'
       },
       openai: {
         apiKey: openaiApiKey,
-        model: openaiModel as 'gpt-4' | 'gpt-4-turbo' | 'gpt-3.5-turbo',
+        model: this.openaiModel as 'gpt-4' | 'gpt-4-turbo' | 'gpt-3.5-turbo',
         organization: openaiOrganization
       },
       claude: {
         apiKey: claudeApiKey,
-        model: claudeModel as 'claude-3-opus' | 'claude-3-sonnet' | 'claude-3-haiku'
+        model: this.claudeModel as 'claude-3-opus' | 'claude-3-sonnet' | 'claude-3-haiku'
       }
     };
   }
@@ -218,7 +223,37 @@ export class Planner {
     
     try {
       const factory = getAIProviderFactory();
-      this.aiProvider = factory.createProvider(this.config.aiProvider || 'gemini', this.config);
+      const providerType = this.config.aiProvider || 'gemini';
+      
+      // Get provider-specific configuration
+      let providerConfig: any;
+      switch (providerType) {
+        case 'gemini':
+          providerConfig = {
+            apiKey: this.config.gemini?.apiKey || '',
+            model: this.geminiModel
+          };
+          break;
+        case 'openai':
+          providerConfig = {
+            apiKey: this.config.openai?.apiKey || '',
+            model: this.openaiModel,
+            organization: this.config.openai?.organization
+          };
+          break;
+        case 'claude':
+          providerConfig = {
+            apiKey: this.config.claude?.apiKey || '',
+            model: this.claudeModel
+          };
+          break;
+        default:
+          throw new Error(`Unsupported provider: ${providerType}`);
+      }
+      
+      console.log('Planner.initializeAIProvider: Provider config:', { ...providerConfig, apiKey: providerConfig.apiKey ? '[REDACTED]' : 'MISSING' });
+      
+      this.aiProvider = factory.createProvider(providerType, providerConfig);
       console.log('Planner.initializeAIProvider: AI provider created successfully:', this.aiProvider.name);
     } catch (error) {
       console.log('Planner.initializeAIProvider: Failed to create AI provider:', error);
@@ -242,16 +277,100 @@ export class Planner {
   }
 
   private parseAIPlan(planText: string): ProjectPlan {
+    console.log('Planner.parseAIPlan: Starting to parse AI response');
+    console.log('Planner.parseAIPlan: Response length:', planText.length);
+    
     try {
-      // Try to parse as JSON first
-      const parsed = JSON.parse(planText);
-      return {
-        ...parsed,
+      // Try multiple JSON extraction methods
+      let jsonText = '';
+      
+      // Method 1: Look for JSON between ```json and ``` markers
+      const codeBlockMatch = planText.match(/```json\s*([\s\S]*?)\s*```/);
+      if (codeBlockMatch) {
+        jsonText = codeBlockMatch[1].trim();
+        console.log('Planner.parseAIPlan: Found JSON in code block');
+      } else {
+        // Method 2: Look for JSON between ``` and ``` markers (without json specifier)
+        const genericCodeBlockMatch = planText.match(/```\s*([\s\S]*?)\s*```/);
+        if (genericCodeBlockMatch) {
+          const potentialJson = genericCodeBlockMatch[1].trim();
+          if (potentialJson.startsWith('{') && potentialJson.endsWith('}')) {
+            jsonText = potentialJson;
+            console.log('Planner.parseAIPlan: Found JSON in generic code block');
+          }
+        }
+        
+        if (!jsonText) {
+          // Method 3: Look for JSON object starting with { and ending with }
+          const jsonMatch = planText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            jsonText = jsonMatch[0];
+            console.log('Planner.parseAIPlan: Found JSON object');
+          } else {
+            // Method 4: Try to parse the entire response as JSON
+            try {
+              JSON.parse(planText.trim());
+              jsonText = planText.trim();
+              console.log('Planner.parseAIPlan: Entire response is valid JSON');
+            } catch {
+              console.log('Planner.parseAIPlan: No valid JSON found in response');
+              console.log('Planner.parseAIPlan: Full response for debugging:', planText);
+              throw new Error('Invalid response format from AI service - no JSON found');
+            }
+          }
+        }
+      }
+
+      console.log('Planner.parseAIPlan: Extracted JSON preview:', jsonText.substring(0, 200) + (jsonText.length > 200 ? '...' : ''));
+
+      // Try to parse JSON with error handling and repair
+      let planData;
+      try {
+        planData = JSON.parse(jsonText);
+        console.log('Planner.parseAIPlan: Successfully parsed JSON');
+      } catch (parseError) {
+        console.log('Planner.parseAIPlan: JSON parse error:', parseError);
+        console.log('Planner.parseAIPlan: Attempting to repair JSON...');
+        
+        // Try to repair common JSON issues
+        let repairedJson = jsonText;
+        
+        // Fix trailing commas in arrays and objects
+        repairedJson = repairedJson.replace(/,(\s*[}\]])/g, '$1');
+        
+        // Fix missing commas between array elements
+        repairedJson = repairedJson.replace(/}(\s*){/g, '},$1{');
+        repairedJson = repairedJson.replace(/](\s*)\[/g, '],$1[');
+        
+        // Fix missing quotes around property names
+        repairedJson = repairedJson.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+        
+        // Try parsing the repaired JSON
+        try {
+          planData = JSON.parse(repairedJson);
+          console.log('Planner.parseAIPlan: Successfully repaired and parsed JSON');
+        } catch (repairError) {
+          console.log('Planner.parseAIPlan: Failed to repair JSON:', repairError);
+          console.log('Planner.parseAIPlan: Original JSON for debugging:', jsonText);
+          throw new Error('Failed to parse AI response as JSON');
+        }
+      }
+      
+      // Validate and transform the response
+      const plan: ProjectPlan = {
+        title: planData.title || 'Generated Project Plan',
+        overview: planData.overview || 'No overview provided',
+        requirements: Array.isArray(planData.requirements) ? planData.requirements : [],
+        fileStructure: this.validateFileStructure(planData.fileStructure || []),
+        nextSteps: this.validateNextSteps(planData.nextSteps || []),
         generatedAt: new Date(),
-        generatedBy: 'ai' as const
+        generatedBy: 'ai'
       };
+
+      console.log('Planner.parseAIPlan: Successfully created ProjectPlan object');
+      return plan;
     } catch (error) {
-      console.error('Failed to parse AI plan as JSON:', error);
+      console.error('Planner.parseAIPlan: Failed to parse AI plan:', error);
       // Fallback to a basic plan structure
       return {
         title: 'AI Generated Plan',
@@ -274,6 +393,30 @@ export class Planner {
     }
   }
 
+  private validateFileStructure(items: any[]): any[] {
+    if (!Array.isArray(items)) return [];
+    
+    return items.map(item => ({
+      name: item.name || 'unnamed',
+      type: item.type === 'directory' ? 'directory' : 'file',
+      description: item.description || '',
+      children: item.children ? this.validateFileStructure(item.children) : []
+    }));
+  }
+
+  private validateNextSteps(steps: any[]): any[] {
+    if (!Array.isArray(steps)) return [];
+    
+    return steps.map((step, index) => ({
+      id: step.id || `step-${index}`,
+      description: step.description || 'No description',
+      completed: false,
+      priority: ['high', 'medium', 'low'].includes(step.priority) ? step.priority : 'medium',
+      estimatedTime: step.estimatedTime || 'Unknown',
+      dependencies: Array.isArray(step.dependencies) ? step.dependencies : []
+    }));
+  }
+ 
   private renderFileStructure(items: any[], markdown: string[], depth: number): void {
     const indent = '  '.repeat(depth);
     

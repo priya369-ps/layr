@@ -22,7 +22,7 @@ export interface LayrConfig {
  */
 export interface GeminiConfig {
   apiKey: string;
-  model?: 'gemini-pro' | 'gemini-pro-vision';
+  model?: 'gemini-2.5-flash' | 'gemini-2.5-pro' | 'gemini-pro' | 'gemini-pro-vision';
 }
 
 /**
