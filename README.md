@@ -249,8 +249,6 @@ MIT License - see LICENSE file for details
 ##  Acknowledgments
 
 - Developed by [Manas Dutta](https://github.com/manasdutta04)
-- Inspired by [Traycer](https://traycer.com/) - the planning-first approach to development
-- Powered by [Google Gemini AI](https://ai.google.dev/)
 - Built with [VS Code Extension API](https://code.visualstudio.com/api)
 
 ## Issues & Support
