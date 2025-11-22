@@ -44,6 +44,14 @@ Layr comes **pre-configured with Groq AI** - just install and start planning imm
 3. Search for "Layr"
 4. Click Install
 
+### From Open VSX Registry (for Cursor, Antigravity, Windsurf, VSCodium, etc.)
+1. Open your IDE
+2. Go to Extensions
+3. Search for "Layr"
+4. Click Install
+
+Or install directly from [Open VSX Registry](https://open-vsx.org/extension/ManasDutta/layr)
+
 ### From Source
 1. Clone this repository
 2. Open in VS Code
@@ -56,12 +64,12 @@ Layr comes **pre-configured with Groq AI** - just install and start planning imm
 
 **Layr is 100% pre-configured!** Just install and start using it immediately.
 
-- ✅ No API keys to enter
-- ✅ No settings to configure  
-- ✅ No account required
-- ✅ No setup steps
+- No API keys to enter
+- No settings to configure  
+- No account required
+- No setup steps
 
-**It just works!** ⚡
+**It just works!**
 
 The extension comes with Groq AI built-in, providing:
 - **Ultra-fast** responses (1-3 seconds)
@@ -280,10 +288,9 @@ npm run vscode:prepublish
 
 MIT License - see LICENSE file for details
 
-##  Acknowledgments
+##  Creators
 
 - Developed by [Manas Dutta](https://github.com/manasdutta04)
-- Built with [VS Code Extension API](https://code.visualstudio.com/api)
 
 ## Issues & Support
 

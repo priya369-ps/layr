@@ -2,7 +2,7 @@
   "name": "layr",
   "displayName": "Layr - AI Planning Layer",
   "description": "AI-powered project planning that just works! Pre-configured with Groq - install and start planning instantly. Zero configuration required.",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "publisher": "ManasDutta",
   "icon": "layr.png",
   "repository": {
@@ -85,7 +85,11 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "publish:vscode": "vsce publish",
+    "publish:openvsx": "ovsx publish -p $OVSX_TOKEN",
+    "publish:all": "npm run publish:vscode && npm run publish:openvsx"
   },
   "devDependencies": {
     "@types/node": "16.x",

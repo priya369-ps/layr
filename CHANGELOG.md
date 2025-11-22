@@ -2,6 +2,17 @@
 
 All notable changes to the "Layr" extension will be documented in this file.
 
+## [2.0.2] - 2025-11-22
+
+### Added
+- Published to Open VSX Registry for broader IDE support
+- Now available on Cursor, Antigravity, Windsurf, VSCodium, Gitpod, Eclipse Theia, and other Open VSX compatible editors
+- Added npm scripts for easier publishing workflow
+
+### Changed
+- Updated README with Open VSX installation instructions
+- Enhanced documentation for multi-IDE compatibility
+
 ## [2.0.1] - 2025-11-22
 
 ### Added
