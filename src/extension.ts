@@ -167,8 +167,8 @@ export function activate(context: vscode.ExtensionContext) {
 
       // Show confirmation dialog
       const confirmation = await vscode.window.showInformationMessage(
-        '🚀 Execute this plan with AI assistance?',
-        { modal: true, detail: 'This will send the plan to your AI coding assistant (GitHub Copilot, etc.) to help you implement it step by step.' },
+        'Execute this plan with AI assistance?',
+        { modal: true, detail: 'This will send the plan to your AI coding assistant (GitHub Copilot, Cursor AI, Windsurf, Antigravity, etc.) to help you implement it step by step.' },
         'Execute with AI',
         'Cancel'
       );
@@ -177,38 +177,124 @@ export function activate(context: vscode.ExtensionContext) {
         return;
       }
 
-      // Try to use VS Code's Chat API (GitHub Copilot Chat, etc.)
+      // Try to use AI Chat (GitHub Copilot, Cursor, Windsurf, etc.)
       try {
-        // Check if chat extension is available
-        const chatExtension = vscode.extensions.getExtension('GitHub.copilot-chat');
+        // Check for different AI chat implementations across IDEs
+        const copilotChat = vscode.extensions.getExtension('GitHub.copilot-chat');
+        const cursorChat = vscode.extensions.getExtension('cursor.chat');
+        const windsurfChat = vscode.extensions.getExtension('windsurf.ai');
+        const antigravityChat = vscode.extensions.getExtension('antigravity.ai');
         
-        if (chatExtension) {
-          // Send to Copilot Chat
-          await vscode.commands.executeCommand('workbench.action.chat.open', {
-            query: `I have a project plan that I need help implementing. Here's the complete plan:\n\n${content}\n\nPlease help me implement this step by step. Let's start with Phase 1.`
-          });
+        let chatOpened = false;
+        
+        // Try GitHub Copilot Chat (VS Code)
+        if (copilotChat) {
+          try {
+            await vscode.commands.executeCommand('workbench.action.chat.open', {
+              query: `I have a project plan that I need help implementing. Here's the complete plan:\n\n${content}\n\nPlease help me implement this step by step. Let's start with Phase 1.`
+            });
+            chatOpened = true;
+            
+            vscode.window.showInformationMessage(
+              'Plan sent to GitHub Copilot Chat! Check the chat panel to start implementation.',
+              'Open Chat'
+            ).then(action => {
+              if (action === 'Open Chat') {
+                vscode.commands.executeCommand('workbench.panel.chat.view.copilot.focus');
+              }
+            });
+          } catch (e) {
+            console.log('Failed to open Copilot Chat:', e);
+          }
+        }
+        
+        // Try Cursor AI Chat
+        if (!chatOpened && cursorChat) {
+          try {
+            await vscode.commands.executeCommand('cursor.chat.open', {
+              text: `I have a project plan that I need help implementing. Here's the complete plan:\n\n${content}\n\nPlease help me implement this step by step. Let's start with Phase 1.`
+            });
+            chatOpened = true;
+            
+            vscode.window.showInformationMessage(
+              'Plan sent to Cursor AI! Check the chat panel to start implementation.'
+            );
+          } catch (e) {
+            console.log('Failed to open Cursor Chat:', e);
+          }
+        }
+        
+        // Try Windsurf AI
+        if (!chatOpened && windsurfChat) {
+          try {
+            await vscode.commands.executeCommand('windsurf.chat.open', {
+              prompt: `I have a project plan that I need help implementing. Here's the complete plan:\n\n${content}\n\nPlease help me implement this step by step. Let's start with Phase 1.`
+            });
+            chatOpened = true;
+            
+            vscode.window.showInformationMessage(
+              'Plan sent to Windsurf AI! Check the chat panel to start implementation.'
+            );
+          } catch (e) {
+            console.log('Failed to open Windsurf Chat:', e);
+          }
+        }
+        
+        // Try Antigravity AI
+        if (!chatOpened && antigravityChat) {
+          try {
+            await vscode.commands.executeCommand('antigravity.chat.open', {
+              message: `I have a project plan that I need help implementing. Here's the complete plan:\n\n${content}\n\nPlease help me implement this step by step. Let's start with Phase 1.`
+            });
+            chatOpened = true;
+            
+            vscode.window.showInformationMessage(
+              'Plan sent to Antigravity AI! Check the chat panel to start implementation.'
+            );
+          } catch (e) {
+            console.log('Failed to open Antigravity Chat:', e);
+          }
+        }
+        
+        // Generic fallback: Try common chat commands
+        if (!chatOpened) {
+          const commonChatCommands = [
+            'workbench.action.chat.open',
+            'chat.open',
+            'ai.chat.open',
+            'assistant.open'
+          ];
           
-          vscode.window.showInformationMessage(
-            '✅ Plan sent to GitHub Copilot Chat! Check the chat panel to start implementation.',
-            'Open Chat'
-          ).then(action => {
-            if (action === 'Open Chat') {
-              vscode.commands.executeCommand('workbench.panel.chat.view.copilot.focus');
+          for (const command of commonChatCommands) {
+            try {
+              await vscode.commands.executeCommand(command);
+              chatOpened = true;
+              break;
+            } catch (e) {
+              // Try next command
             }
-          });
-        } else {
-          // Fallback: Copy to clipboard and show instructions
+          }
+        }
+        
+        // Final fallback: Copy to clipboard and show instructions
+        if (!chatOpened) {
           await vscode.env.clipboard.writeText(content);
           
           const action = await vscode.window.showInformationMessage(
-            '📋 Plan copied to clipboard!\n\nPaste it into your preferred AI assistant (GitHub Copilot, Claude, ChatGPT, etc.) to get implementation help.',
+            'Plan copied to clipboard!\n\nPaste it into your AI assistant to get implementation help.',
             { modal: false },
-            'Open Copilot Chat',
+            'Try Opening Chat',
             'Instructions'
           );
 
-          if (action === 'Open Copilot Chat') {
-            await vscode.commands.executeCommand('workbench.action.chat.open');
+          if (action === 'Try Opening Chat') {
+            try {
+              await vscode.commands.executeCommand('workbench.action.chat.open');
+            } catch (e) {
+              vscode.window.showInformationMessage(
+                'Could not automatically open chat. Please open your AI assistant manually and paste the plan from clipboard.'
+              );
+            }
           } else if (action === 'Instructions') {
             showExecutionInstructions();
           }
@@ -220,7 +306,7 @@ export function activate(context: vscode.ExtensionContext) {
         // Fallback: Copy to clipboard
         await vscode.env.clipboard.writeText(content);
         vscode.window.showInformationMessage(
-          '📋 Plan copied to clipboard! Paste it into your AI coding assistant to get started.',
+          'Plan copied to clipboard! Paste it into your AI coding assistant to get started.',
           'Got it'
         );
       }
@@ -260,7 +346,7 @@ export function activate(context: vscode.ExtensionContext) {
  */
 async function showWelcomeMessage(context: vscode.ExtensionContext) {
   const action = await vscode.window.showInformationMessage(
-    '🎉 Welcome to Layr! AI-powered project planning is ready to use - no configuration needed!',
+    'Welcome to Layr! AI-powered project planning is ready to use - no configuration needed!',
     'Create First Plan',
     'Learn More'
   );
@@ -287,17 +373,35 @@ function showExecutionInstructions() {
 
 Your plan has been copied to the clipboard! Here's how to use it with AI assistants:
 
-## Using GitHub Copilot Chat
+## Using GitHub Copilot Chat (VS Code)
 1. Open the Chat panel (Ctrl+Shift+I or Cmd+Shift+I)
 2. Paste the plan into the chat
 3. Ask: "Help me implement this plan step by step"
 4. Follow the AI's guidance to build your project
 
+## Using Cursor AI
+1. Open Cursor Chat (Ctrl+L or Cmd+L)
+2. Paste the plan
+3. Ask: "Help me implement this plan step by step"
+4. Work through each phase with Cursor's assistance
+
+## Using Windsurf AI
+1. Open Windsurf Chat panel
+2. Paste the plan
+3. Request implementation guidance
+4. Build your project step by step
+
+## Using Antigravity AI
+1. Open Antigravity Chat
+2. Paste the plan
+3. Ask: "Help me implement this plan step by step"
+4. Follow the AI's implementation guidance
+
 ## Using Other AI Assistants
 1. Open ChatGPT, Claude, or your preferred AI
 2. Paste the plan
 3. Ask for implementation help phase by phase
-4. Copy the generated code back to VS Code
+4. Copy the generated code back to your IDE
 
 ## Tips for Best Results
 - ✅ Start with Phase 1 and work sequentially

@@ -99,15 +99,19 @@ See `GROQ_SETUP.md` for detailed instructions.
 3. **Run Command** : Type "Layr: Execute Plan" and press Enter
 4. **Confirm Execution** : Review the confirmation dialog and click "Execute with AI"
 5. **Implementation Assistance** : 
-   - If GitHub Copilot is installed: Plan is automatically sent to Copilot Chat
-   - If not: Plan is copied to clipboard for use with any AI assistant
+   - **VS Code**: Plan sent to GitHub Copilot Chat automatically
+   - **Cursor**: Plan sent to Cursor AI automatically
+   - **Windsurf**: Plan sent to Windsurf AI automatically
+   - **Antigravity**: Plan sent to Antigravity AI automatically
+   - **Other IDEs**: Plan copied to clipboard for manual paste
 6. **Follow AI Guidance** : Work with your AI assistant to implement the plan step by step
 
 **Safety Features:**
 - Only Layr-generated plans can be executed (watermark verification)
 - Confirmation required before sending to AI
 - Helpful error messages guide you through the process
-- Automatic detection of available AI assistants
+- Automatic detection of AI assistants across different IDEs
+- Universal clipboard fallback for any IDE
 
 ### Best Practices for Prompts
 

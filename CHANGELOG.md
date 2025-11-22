@@ -2,6 +2,59 @@
 
 All notable changes to the "Layr" extension will be documented in this file.
 
+## [2.0.3] - 2025-11-22
+
+### Added
+- Multi-IDE support for Execute Plan feature
+- Automatic detection and integration with Cursor AI
+- Automatic detection and integration with Windsurf AI
+- Automatic detection and integration with Antigravity AI
+- Generic fallback for other IDE AI assistants
+- Enhanced execution instructions for multiple IDEs
+
+### Changed
+- Execute Plan now works across VS Code, Cursor, Windsurf, Antigravity, and other compatible IDEs
+- Improved AI assistant detection with multiple fallback strategies
+- Updated documentation to reflect multi-IDE support
+
+### Fixed
+- Execute Plan now functions properly in Cursor, Windsurf, and Antigravity
+- Better error handling when AI chat extensions are not available
+
+## [2.0.2] - 2025-11-22
+
+### Added
+- Published to Open VSX Registry for broader IDE support
+- Now available on Cursor, Windsurf, VSCodium, Gitpod, Eclipse Theia, and other Open VSX compatible editors
+- Added npm scripts for easier publishing workflow
+
+### Changed
+- Updated README with Open VSX installation instructions
+- Enhanced documentation for multi-IDE compatibility
+
+## [2.0.1] - 2025-11-22
+
+### Added
+- Customizable plan generation with size and type settings
+- Plan Size options: Concise (80-100 lines), Normal (180-240 lines), Descriptive (300+ lines)
+- Plan Type options: Hobby, SaaS, Production, Enterprise, Prototype, Open Source
+- Intelligent prompt engineering that adapts to user preferences
+- Timestamp in watermark showing generation date and time
+- Type-specific features (e.g., Hobby projects use SQLite, skip CI/CD; SaaS includes billing, multi-tenancy)
+- Size-aware content scaling across all plan sections
+
+### Changed
+- Enhanced system prompts with explicit size constraints and line count targets
+- Improved AI differentiation between plan types with feature inclusion/exclusion lists
+- Watermark moved to top of generated plans for better Execute Plan integration
+- Added generation timestamp to watermark for tracking
+- Optimized token usage based on plan size (2500/5000/8000 maxTokens)
+
+### Fixed
+- Plans now properly respect size settings with accurate line counts
+- Different plan types generate distinctly different outputs
+- Hobby projects no longer include enterprise features unnecessarily
+
 ## [1.1.0] - 2025-11-22
 
 ### Added
