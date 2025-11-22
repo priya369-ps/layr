@@ -2,6 +2,21 @@
 
 All notable changes to the "Layr" extension will be documented in this file.
 
+## [1.1.0] - 2025-11-22
+
+### Added
+- Execute Plan feature: Send generated plans directly to AI coding assistants
+- Integration with GitHub Copilot Chat for automatic plan execution
+- Intelligent validation: Only executes Layr-generated plans with watermark verification
+- Fallback support: Copies plan to clipboard if AI assistant not available
+- User guidance: Helpful instructions and error messages for plan execution
+- Safety features: Confirmation dialogs and plan validation before execution
+
+### Changed
+- Enhanced Execute Plan command with full AI assistant integration
+- Improved user experience with automatic AI chat panel opening
+- Added detailed execution instructions for manual implementation
+
 ## [0.2.4] - 2025-11-20
 
 ### Fixed
