@@ -2,6 +2,12 @@
 
 All notable changes to the "Layr" extension will be documented in this file.
 
+## [2.1.2] - 2025-12-08
+
+### Changed
+- Minor documentation and changelog updates
+- Add Demo Video link to README.md for better user understanding
+
 ## [2.1.1] - 2025-12-07
 
 ### Fixed
